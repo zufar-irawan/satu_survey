@@ -1,0 +1,4 @@
+[submodule "backend"]
+	path = backend
+	url = https://github.com/mzkrl/satusurvey.git
+	branch = main
