@@ -1,0 +1,82 @@
+```gitignore
+# ==========================================
+# Operating System & Editors
+# ==========================================
+
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ==========================================
+# Environment Variables & Secrets
+# ==========================================
+
+.env
+.env.*
+!.env.example
+
+# ==========================================
+# Frontend: Node.js
+# ==========================================
+
+node_modules/
+dist/
+build/
+.next/
+out/
+coverage/
+.npm/
+
+# ==========================================
+# Backend: Python
+# ==========================================
+
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Python environments
+.venv/
+venv/
+env/
+
+# Python packaging
+build/
+dist/
+*.egg-info/
+
+# Testing & coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# ==========================================
+# Django
+# ==========================================
+
+staticfiles/
+media/
+
+# Local database (SQLite)
+db.sqlite3
+db.sqlite3-journal
+
+# ==========================================
+# Logs & Temporary Files
+# ==========================================
+
+*.log
+tmp/
+temp/
+
+# ==========================================
+# Local Tooling
+# ==========================================
+
+.cache/
+```
