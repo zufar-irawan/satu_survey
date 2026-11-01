@@ -90,7 +90,7 @@ export default function ProfilePage() {
   return (
     <div className="flex flex-col min-h-screen" style={{ backgroundImage: "linear-gradient(90deg, rgb(250, 247, 242) 0%, rgb(250, 247, 242) 100%), linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%)" }}>
       <header className="bg-[#fff8f5] border-b border-[#e0d8d5]">
-        <div className="mx-auto max-w-[1280px] px-10 h-16 flex items-center justify-between">
+        <div className="mx-auto max-w-[1280px] px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <div className="flex flex-col">
               <div className="font-[family-name:var(--font-newsreader)] font-bold text-[#1f1b1a] text-xl tracking-[-0.5px] leading-7">SatuSurvey</div>
