@@ -14,6 +14,7 @@ Sebuah platform yang menganalisis laporan hasil survey statistik untuk kamu yang
 ## Catatan Pengembangan:
 1. Frontend masih dalam tahap pengembangan, sehingga kami menggunakan views dari Django untuk melakukan testing sementara waktu.
 2. LLM masih pakai FakeLLMClient (We're too broke to have real model ngl😭)
+3. Diharap kamu untuk membaca dokumen2 yang ada di direktori /docs untuk mengerti konsep, alur kerja sistem, hingga arsitektur sistem kami.
 
 ## Cara Running APP:
 ### Prasyarat
