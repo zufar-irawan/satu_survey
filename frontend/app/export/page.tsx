@@ -38,14 +38,10 @@ function ExportContent() {
   const [digest, setDigest] = useState<string>("");
   const [status, setStatus] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!selectedId && analyses.length > 0) {
-      setSelectedId(analyses[0].analysis_id);
-    }
-  }, [analyses, selectedId]);
+  const activeId = selectedId || analyses[0]?.analysis_id || "";
 
-  const { result, loading, error } = useAnalysis(selectedId || null);
-  const selected = analyses.find((item) => item.analysis_id === selectedId);
+  const { result, loading, error } = useAnalysis(activeId || null);
+  const selected = analyses.find((item) => item.analysis_id === activeId);
 
   const payload = useMemo(() => {
     if (!result) return "";
@@ -119,7 +115,7 @@ function ExportContent() {
           </div>
           {analyses.length > 0 && (
             <select
-              value={selectedId}
+              value={activeId}
               onChange={(event) => setSelectedId(event.target.value)}
               className="max-w-[320px] rounded-[2px] border border-[#d8c2be] bg-white px-3 py-2 font-[family-name:var(--font-source-sans-3)] text-sm text-[#1c1917] focus:border-[#801313] focus:outline-none"
             >
@@ -138,9 +134,9 @@ function ExportContent() {
           </div>
         )}
 
-        {listLoading || (selectedId && loading) ? (
+        {listLoading || (activeId && loading) ? (
           <LoadingScreen message="Menyiapkan export..." />
-        ) : !selectedId ? (
+        ) : !activeId ? (
           <div className="rounded-[4px] border border-dashed border-[#e7e0d3] bg-white px-6 py-12 text-center">
             <p className="font-[family-name:var(--font-source-sans-3)] text-sm text-[#635d5c]">
               Belum ada hasil analisis yang bisa diekspor.

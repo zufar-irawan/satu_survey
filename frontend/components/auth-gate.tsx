@@ -24,8 +24,10 @@ export default function AuthGate({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!loading && !user) {
-      const next = pathname ? `?next=${encodeURIComponent(pathname)}` : "";
-      router.replace(`/login${next}`);
+      const search =
+        typeof window !== "undefined" ? window.location.search : "";
+      const target = pathname ? `${pathname}${search}` : "/analyze";
+      router.replace(`/login?next=${encodeURIComponent(target)}`);
     }
   }, [loading, pathname, router, user]);
 

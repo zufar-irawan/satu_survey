@@ -30,6 +30,7 @@ function RepositoryContent() {
     const valid = analyses.reduce((sum, item) => sum + item.summary.valid, 0);
     return {
       completed: completed.length,
+      queued: analyses.filter((item) => item.status === "queued").length,
       processing: analyses.filter((item) => item.status === "processing").length,
       failed: analyses.filter((item) => item.status === "failed").length,
       totalClaims,
@@ -207,6 +208,7 @@ function RepositoryContent() {
               <div className="flex flex-col gap-3 p-5">
                 {[
                   { label: "Completed", value: stats.completed, color: "text-[#006c4e]" },
+                  { label: "Queued", value: stats.queued, color: "text-[#635d5c]" },
                   { label: "Processing", value: stats.processing, color: "text-[#a16207]" },
                   { label: "Failed", value: stats.failed, color: "text-[#801313]" },
                 ].map((item) => (

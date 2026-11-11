@@ -149,6 +149,28 @@ export type AnalysisListItem = {
   summary: AnalysisSummary;
 };
 
+export type AnalysisStatus = "queued" | "processing" | "completed" | "failed";
+
+export type AnalyzeUploadResponse = {
+  analysis_id: string;
+  job_id: string | null;
+  status: AnalysisStatus;
+  deduplicated: boolean;
+};
+
+export type AnalysisStatusResponse = {
+  analysis_id: string;
+  status: AnalysisStatus;
+  error: string | null;
+};
+
+export type ShareLinkResponse = {
+  analysis_id: string;
+  share_token: string;
+  share_url: string | null;
+  shared_at: string | null;
+};
+
 type RequestInitOverride = Omit<RequestInit, "body"> & {
   body?: Json | FormData;
   auth?: boolean;
@@ -268,10 +290,11 @@ export const api = {
 
   getMe: () => request<User>("/users/me", { method: "GET", auth: true }),
 
-  analyzePdf: (file: File, signal?: AbortSignal) => {
+  analyzePdf: (file: File, signal?: AbortSignal, force = false) => {
     const form = new FormData();
     form.append("file", file);
-    return request<AnalyzeResponse>("/analyze", {
+    if (force) form.append("force", "true");
+    return request<AnalyzeUploadResponse>("/analyze", {
       method: "POST",
       formData: true,
       body: form,
@@ -288,6 +311,30 @@ export const api = {
       method: "GET",
       auth: true,
     }),
+
+  getAnalysisStatus: (analysisId: string) =>
+    request<AnalysisStatusResponse>(
+      `/analyses/${encodeURIComponent(analysisId)}/status`,
+      { method: "GET", auth: true }
+    ),
+
+  shareAnalysis: (analysisId: string) =>
+    request<ShareLinkResponse>(
+      `/analyses/${encodeURIComponent(analysisId)}/share`,
+      { method: "POST", auth: true }
+    ),
+
+  unshareAnalysis: (analysisId: string) =>
+    request<void>(`/analyses/${encodeURIComponent(analysisId)}/share`, {
+      method: "DELETE",
+      auth: true,
+    }),
+
+  getSharedAnalysis: (token: string) =>
+    request<AnalyzeResponse>(
+      `/public/analyses/${encodeURIComponent(token)}`,
+      { method: "GET", auth: false }
+    ),
 };
 
 export { API_URL, isFormData };

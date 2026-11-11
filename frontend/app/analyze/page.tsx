@@ -6,26 +6,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/navbar";
 import AuthGate, { LoadingScreen } from "@/components/auth-gate";
 import AnalysisResultView from "@/components/analysis-result";
+import SharePanel from "@/components/share-panel";
+import StatusBadge from "@/components/status-badge";
 import { api } from "@/lib/api";
 import { useAnalyses, useAnalysis } from "@/lib/hooks";
 
 const MAX_MB = 20;
-
-function StatusBadge({ status }: { status: string }) {
-  const style =
-    status === "completed"
-      ? "border-[#006c4e]/30 bg-[rgba(0,108,78,0.08)] text-[#006c4e]"
-      : status === "failed"
-        ? "border-[#801313]/30 bg-[rgba(128,19,19,0.08)] text-[#801313]"
-        : "border-[#a16207]/30 bg-[rgba(161,98,7,0.08)] text-[#a16207]";
-  return (
-    <span
-      className={`inline-flex rounded-xl border px-2 py-[2px] font-[family-name:var(--font-jetbrains-mono)] text-[9px] uppercase tracking-[0.5px] ${style}`}
-    >
-      {status}
-    </span>
-  );
-}
 
 function RecentAnalyses() {
   const { analyses, loading } = useAnalyses();
@@ -94,8 +80,13 @@ function UploadPanel() {
     setFile(selected);
     setUploading(true);
     try {
-      const result = await api.analyzePdf(selected);
-      router.replace(`/analyze?id=${encodeURIComponent(result.analysis_id)}`);
+      const upload = await api.analyzePdf(selected);
+      if (!upload?.analysis_id) {
+        throw new Error("Backend tidak mengembalikan ID analisis.");
+      }
+      const params = new URLSearchParams({ id: upload.analysis_id });
+      if (upload.deduplicated) params.set("deduplicated", "1");
+      router.replace(`/analyze?${params.toString()}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Analisis gagal");
     } finally {
@@ -260,21 +251,43 @@ function UploadPanel() {
 function AnalyzeContent() {
   const searchParams = useSearchParams();
   const analysisId = searchParams.get("id");
-  const { result, loading, error, refresh } = useAnalysis(analysisId);
+  const deduplicated = searchParams.get("deduplicated") === "1";
+  const { result, loading, polling, status, error, refresh } =
+    useAnalysis(analysisId);
+  const [shareOpenFor, setShareOpenFor] = useState<string | null>(null);
   const title = useMemo(
     () => (analysisId ? "Hasil Analisis" : "Analisis Baru"),
     [analysisId]
   );
+
+  const shareOpen = Boolean(analysisId && shareOpenFor === analysisId);
+
+  const isPending = status === "queued" || status === "processing";
 
   return (
     <main className="flex-1 bg-[#faf7f2] px-6 py-6">
       <div className="mx-auto flex max-w-[960px] flex-col gap-4 px-2 py-2 sm:px-6">
         {analysisId && (
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="font-[family-name:var(--font-jetbrains-mono)] text-[11px] uppercase tracking-[0.55px] text-[#635d5c]">
-              {title}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-[family-name:var(--font-jetbrains-mono)] text-[11px] uppercase tracking-[0.55px] text-[#635d5c]">
+                {title}
+              </span>
+              {status && <StatusBadge status={status} />}
             </div>
             <div className="flex items-center gap-2">
+              {result && (
+                <button
+                  onClick={() =>
+                    setShareOpenFor((current) =>
+                      current === analysisId ? null : analysisId
+                    )
+                  }
+                  className="rounded-[2px] border border-[#801313] bg-white px-3 py-1.5 font-[family-name:var(--font-jetbrains-mono)] text-[10px] font-bold text-[#801313] hover:bg-[#faf7f2]"
+                >
+                  BAGIKAN
+                </button>
+              )}
               <button
                 onClick={() => void refresh()}
                 className="rounded-[2px] border border-[#d8c2be] bg-white px-3 py-1.5 font-[family-name:var(--font-jetbrains-mono)] text-[10px] text-[#1c1917] hover:bg-[#faf7f2]"
@@ -291,6 +304,10 @@ function AnalyzeContent() {
           </div>
         )}
 
+        {analysisId && shareOpen && result && (
+          <SharePanel key={result.analysis_id} analysisId={result.analysis_id} />
+        )}
+
         {!analysisId && <UploadPanel />}
 
         {analysisId && loading && <LoadingScreen message="Memuat hasil analisis..." />}
@@ -298,7 +315,7 @@ function AnalyzeContent() {
         {analysisId && !loading && error && (
           <div className="rounded-[4px] border border-[#fecaca] bg-[#fdf2f2] p-5">
             <h2 className="font-[family-name:var(--font-newsreader)] text-lg text-[#991b1b]">
-              Gagal memuat analisis
+              {status === "failed" ? "Analisis gagal" : "Gagal memuat analisis"}
             </h2>
             <p className="mt-1 font-[family-name:var(--font-source-sans-3)] text-sm text-[#991b1b]">
               {error}
@@ -312,8 +329,43 @@ function AnalyzeContent() {
           </div>
         )}
 
+        {analysisId && !loading && !error && !result && isPending && (
+          <section className="overflow-hidden rounded-[4px] border border-[#e7e0d3] bg-white shadow-[0px_1px_1px_rgba(0,0,0,0.05)]">
+            <div className="h-1 bg-[#801313]" />
+            <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#e7e0d3] border-t-[#801313]" />
+              <StatusBadge status={status ?? "queued"} />
+              <h2 className="font-[family-name:var(--font-newsreader)] text-xl leading-7 text-[#1c1917]">
+                {status === "queued"
+                  ? "Laporan sedang dalam antrean"
+                  : "Sedang dianalisis"}
+              </h2>
+              <p className="max-w-[460px] font-[family-name:var(--font-source-sans-3)] text-sm leading-5 text-[#635d5c]">
+                {status === "queued"
+                  ? "Laporan menunggu giliran diproses oleh worker. Halaman ini memperbarui status secara otomatis; Anda dapat meninggalkan halaman dan kembali nanti."
+                  : "Ekstraksi PDF, klaim, evidence, dan quality control sedang berjalan. Halaman ini memperbarui status secara otomatis."}
+              </p>
+              <span className="font-[family-name:var(--font-jetbrains-mono)] text-[10px] uppercase tracking-[0.5px] text-[#a8a29e]">
+                {polling ? "Memantau status..." : "Menunggu status..."}
+              </span>
+            </div>
+          </section>
+        )}
+
+        {analysisId && !loading && !error && !result && status === "completed" && (
+          <LoadingScreen message="Menyiapkan hasil analisis..." />
+        )}
+
         {analysisId && !loading && !error && result && (
-          <AnalysisResultView result={result} />
+          <>
+            {deduplicated && (
+              <div className="rounded-[4px] border border-[#e7e0d3] bg-[#f3efe6] px-4 py-3 font-[family-name:var(--font-source-sans-3)] text-xs leading-5 text-[#635d5c]">
+                PDF identik sudah pernah dianalisis. Menampilkan hasil tersimpan
+                untuk laporan ini.
+              </div>
+            )}
+            <AnalysisResultView result={result} />
+          </>
         )}
       </div>
     </main>

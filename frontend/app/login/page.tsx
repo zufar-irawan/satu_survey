@@ -20,12 +20,11 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [nextPath, setNextPath] = useState("/analyze");
-
-  useEffect(() => {
+  const [nextPath] = useState(() => {
+    if (typeof window === "undefined") return "/analyze";
     const requested = new URLSearchParams(window.location.search).get("next");
-    setNextPath(safeNextPath(requested));
-  }, []);
+    return safeNextPath(requested);
+  });
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
