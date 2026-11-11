@@ -1,102 +1,281 @@
-import Link from "next/link";
-import Navbar from "../components/navbar";
+"use client";
 
-export default function PipelinePage() {
-  const logs = [
-    { time: "14:23:18", level: "INFO", msg: "Worker container spawned: ingestion-extract-04" },
-    { time: "14:23:19", level: "INFO", msg: "PDF text extraction started (64 pages)" },
-    { time: "14:23:24", level: "INFO", msg: "OCR bypass: vector text detected, using native layer" },
-    { time: "14:23:28", level: "INFO", msg: "Table structure recognition complete (12 tables)" },
-    { time: "14:23:31", level: "WARN", msg: "Column alignment ambiguity detected at page 42, table 3" },
-    { time: "14:23:35", level: "ERROR", msg: "QC validation failed: missing sampling frame reference in section 3.2" },
-    { time: "14:23:36", level: "INFO", msg: "Retrying with fallback parser on affected sections" },
-  ];
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import Navbar from "@/components/navbar";
+import AuthGate, { LoadingScreen } from "@/components/auth-gate";
+import StatusBadge from "@/components/status-badge";
+import { useAnalyses, useAnalysis } from "@/lib/hooks";
+
+function Step({
+  title,
+  status,
+  detail,
+}: {
+  title: string;
+  status: "complete" | "failed" | "active" | "pending";
+  detail: string;
+}) {
+  const icon =
+    status === "complete" ? (
+      <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+        <circle cx="9" cy="9" r="6.75" stroke="#006c4e" strokeWidth="1.5" />
+        <path
+          d="M6.75 9l1.5 1.5 3.75-3.75"
+          stroke="#006c4e"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ) : status === "failed" ? (
+      <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+        <circle cx="9" cy="9" r="6.75" stroke="#801313" strokeWidth="1.5" />
+        <path
+          d="M9 6v3M9 12h.0075"
+          stroke="#801313"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ) : (
+      <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+        <circle cx="9" cy="9" r="6.75" stroke="#a16207" strokeWidth="1.5" />
+        <path
+          d="M9 6v3M9 12h.0075"
+          stroke="#a16207"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+
+  const color =
+    status === "complete"
+      ? "text-[#006c4e]"
+      : status === "failed"
+        ? "text-[#801313]"
+        : "text-[#a16207]";
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ backgroundImage: "linear-gradient(90deg, rgb(250, 247, 242) 0%, rgb(250, 247, 242) 100%), linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%)" }}>
-      <Navbar showSearch={true} showProfile={true} showRepository={true} activePage="pipeline" />
-      <main className="flex-1 bg-[#faf7f2]">
-        <div className="mx-auto max-w-[1100px] px-6 py-8 flex flex-col gap-6">
-          <section className="flex items-start justify-between">
-            <div className="flex flex-col gap-2">
-              <div className="font-[family-name:var(--font-jetbrains-mono)] text-[11px] tracking-[0.55px] uppercase text-[#801313] leading-[16.5px]">PIPELINE EXECUTION</div>
-              <h1 className="font-[family-name:var(--font-newsreader)] text-[#1c1917] text-4xl tracking-[-1px] leading-[40px]">Live Synchronous Pipeline</h1>
-              <p className="font-[family-name:var(--font-source-sans-3)] text-base text-[#635d5c] leading-[26px]">Real-time monitoring with QC checkpoints and failure remediation.</p>
+    <div className="flex items-center gap-3 rounded-[4px] border border-[#e7e0d3] bg-white p-4 shadow-[0px_1px_1px_rgba(0,0,0,0.05)]">
+      {icon}
+      <div>
+        <div className="font-[family-name:var(--font-source-sans-3)] font-medium text-[#1c1917]">
+          {title}
+        </div>
+        <div className={`font-[family-name:var(--font-source-sans-3)] text-sm ${color}`}>
+          {detail}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PipelineContent() {
+  const { analyses, loading: listLoading } = useAnalyses();
+  const [selectedId, setSelectedId] = useState("");
+
+  useEffect(() => {
+    if (!selectedId && analyses.length > 0) {
+      setSelectedId(analyses[0].analysis_id);
+    }
+  }, [analyses, selectedId]);
+
+  const { result, loading, error } = useAnalysis(selectedId || null);
+  const selected = analyses.find((item) => item.analysis_id === selectedId);
+
+  const logs = useMemo(() => {
+    if (!selected) return [];
+    const entries = [
+      `[STATUS] ${selected.status.toUpperCase()} — ${selected.title}`,
+      `[CLAIMS] ${selected.summary.total_claims} klaim diekstrak`,
+      `[VALID] ${selected.summary.valid} klaim didukung evidence`,
+      `[REVIEW] ${selected.summary.questionable} questionable, ${selected.summary.insufficient_evidence} insufficient`,
+      `[INVALID] ${selected.summary.invalid} klaim tidak cocok`,
+    ];
+    if (result) {
+      entries.push(
+        `[QC] status=${result.quality_control.status}, issues=${result.quality_control.issues.length}`
+      );
+    }
+    return entries;
+  }, [result, selected]);
+
+  const qcIssues = result?.quality_control.issues || [];
+
+  return (
+    <main className="flex-1 bg-[#faf7f2]">
+      <div className="mx-auto flex max-w-[1100px] flex-col gap-6 px-6 py-8">
+        <section className="flex flex-wrap items-end justify-between gap-3">
+          <div className="flex flex-col gap-2">
+            <div className="font-[family-name:var(--font-jetbrains-mono)] text-[11px] uppercase leading-[16.5px] tracking-[0.55px] text-[#801313]">
+              PIPELINE EXECUTION
             </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-[rgba(128,19,19,0.08)] border border-[#801313]/30 rounded-[2px]">
-              <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="9" cy="9" r="6.75" stroke="#801313" strokeWidth="1.5" />
-                <path d="M9 6v3M9 12h.0075" stroke="#801313" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              <span className="font-[family-name:var(--font-jetbrains-mono)] text-xs text-[#801313]">QC FAILURE DETECTED</span>
+            <h1 className="font-[family-name:var(--font-newsreader)] text-4xl leading-[40px] tracking-[-1px] text-[#1c1917]">
+              Pipeline Execution
+            </h1>
+            <p className="font-[family-name:var(--font-source-sans-3)] text-base leading-[26px] text-[#635d5c]">
+              Status pemrosesan sinkron: ekstraksi PDF, klaim, evidence,
+              evaluasi, dan quality control.
+            </p>
+          </div>
+          {analyses.length > 0 && (
+            <select
+              value={selectedId}
+              onChange={(event) => setSelectedId(event.target.value)}
+              className="max-w-[320px] rounded-[2px] border border-[#d8c2be] bg-white px-3 py-2 font-[family-name:var(--font-source-sans-3)] text-sm text-[#1c1917] focus:border-[#801313] focus:outline-none"
+            >
+              {analyses.map((item) => (
+                <option key={item.analysis_id} value={item.analysis_id}>
+                  {item.title}
+                </option>
+              ))}
+            </select>
+          )}
+        </section>
+
+        {error && (
+          <div className="rounded-[4px] border border-[#fecaca] bg-[#fdf2f2] px-4 py-3 font-[family-name:var(--font-source-sans-3)] text-sm text-[#991b1b]">
+            {error}
+          </div>
+        )}
+
+        {listLoading || (selectedId && loading) ? (
+          <LoadingScreen message="Memuat status pipeline..." />
+        ) : !selected ? (
+          <div className="rounded-[4px] border border-dashed border-[#e7e0d3] bg-white px-6 py-12 text-center">
+            <p className="font-[family-name:var(--font-source-sans-3)] text-sm text-[#635d5c]">
+              Belum ada eksekusi pipeline.
+            </p>
+            <Link
+              href="/analyze"
+              className="mt-3 inline-block rounded-[2px] bg-[#801313] px-3 py-2 font-[family-name:var(--font-jetbrains-mono)] text-[10px] font-bold text-white"
+            >
+              JALANKAN ANALISIS
+            </Link>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center gap-2">
+              <StatusBadge status={selected.status} />
+              <span className="font-[family-name:var(--font-jetbrains-mono)] text-xs text-[#635d5c]">
+                {selected.title}
+              </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white border border-[#e7e0d3] rounded-[4px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] p-4 flex items-center gap-3">
-                <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="9" cy="9" r="6.75" stroke="#006c4e" strokeWidth="1.5" />
-                  <path d="M6.75 9l1.5 1.5 3.75-3.75" stroke="#006c4e" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <div>
-                  <div className="font-[family-name:var(--font-source-sans-3)] font-medium text-[#1c1917]">Extraction</div>
-                  <div className="font-[family-name:var(--font-source-sans-3)] text-sm text-[#006c4e]">Complete</div>
-                </div>
-              </div>
-              <div className="bg-white border border-[#e7e0d3] rounded-[4px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] p-4 flex items-center gap-3">
-                <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="9" cy="9" r="6.75" stroke="#006c4e" strokeWidth="1.5" />
-                  <path d="M6.75 9l1.5 1.5 3.75-3.75" stroke="#006c4e" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <div>
-                  <div className="font-[family-name:var(--font-source-sans-3)] font-medium text-[#1c1917]">Normalization</div>
-                  <div className="font-[family-name:var(--font-source-sans-3)] text-sm text-[#006c4e]">Complete</div>
-                </div>
-              </div>
-              <div className="bg-white border border-[#e7e0d3] rounded-[4px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] p-4 flex items-center gap-3">
-                <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="9" cy="9" r="6.75" stroke="#801313" strokeWidth="1.5" />
-                  <path d="M9 6v3M9 12h.0075" stroke="#801313" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <div>
-                  <div className="font-[family-name:var(--font-source-sans-3)] font-medium text-[#1c1917]">Quality Control</div>
-                  <div className="font-[family-name:var(--font-source-sans-3)] text-sm text-[#801313]">Failed - Action Required</div>
-                </div>
-              </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <Step
+                title="PDF Extraction"
+                status={selected.status === "failed" ? "failed" : "complete"}
+                detail={selected.status === "failed" ? "Gagal" : "Selesai"}
+              />
+              <Step
+                title="Claim & Evidence"
+                status={
+                  selected.status === "completed"
+                    ? "complete"
+                    : selected.status === "failed"
+                      ? "failed"
+                      : "active"
+                }
+                detail={
+                  selected.status === "completed"
+                    ? "Selesai"
+                    : selected.status === "failed"
+                      ? "Gagal"
+                      : "Diproses"
+                }
+              />
+              <Step
+                title="Quality Control"
+                status={
+                  selected.status === "failed"
+                    ? "failed"
+                    : result?.quality_control.status === "passed"
+                      ? "complete"
+                      : "active"
+                }
+                detail={
+                  result
+                    ? `${result.quality_control.status} · ${qcIssues.length} issue`
+                    : "Menunggu hasil"
+                }
+              />
             </div>
 
-            <section className="bg-white border border-[#e7e0d3] rounded-[4px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] overflow-hidden">
-              <div className="px-6 py-4 border-b border-[#e7e0d3] flex items-center justify-between">
-                <h2 className="font-[family-name:var(--font-newsreader)] text-[#1c1917] text-xl leading-6">Execution Log</h2>
-                <span className="font-[family-name:var(--font-jetbrains-mono)] text-xs text-[#635d5c]">LIVE</span>
+            <section className="overflow-hidden rounded-[4px] border border-[#e7e0d3] bg-white shadow-[0px_1px_1px_rgba(0,0,0,0.05)]">
+              <div className="flex items-center justify-between border-b border-[#e7e0d3] px-6 py-4">
+                <h2 className="font-[family-name:var(--font-newsreader)] text-xl leading-6 text-[#1c1917]">
+                  Execution Summary
+                </h2>
+                <span className="font-[family-name:var(--font-jetbrains-mono)] text-[10px] uppercase text-[#635d5c]">
+                  {new Date(selected.created_at).toLocaleString("id-ID")}
+                </span>
               </div>
-              <div className="p-6 bg-[#1c1917] font-[family-name:var(--font-jetbrains-mono)] text-xs">
+              <div className="bg-[#1c1917] p-6 font-[family-name:var(--font-jetbrains-mono)] text-xs">
                 <div className="flex flex-col gap-1">
-                  {logs.map((log, idx) => (
-                    <div key={idx} className="flex gap-3">
-                      <span className="text-[#a8a29e]">{log.time}</span>
-                      <span className={log.level === "ERROR" ? "text-[#fca5a5]" : log.level === "WARN" ? "text-[#fbbf24]" : "text-[#86efac]"}>[{log.level}]</span>
-                      <span className="text-[#e7e5e4]">{log.msg}</span>
+                  {logs.map((log, index) => (
+                    <div key={index} className="flex gap-3">
+                      <span className="text-[#a8a29e]">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <span className="text-[#e7e5e4]">{log}</span>
                     </div>
                   ))}
                 </div>
               </div>
-              <div className="p-4 border-t border-[#e7e0d3] flex items-center justify-between bg-[#fef2f2]">
-                <div className="flex items-center gap-2">
-                  <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="9" cy="9" r="6.75" stroke="#801313" strokeWidth="1.5" />
-                    <path d="M9 6v3M9 12h.0075" stroke="#801313" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  <span className="font-[family-name:var(--font-source-sans-3)] text-sm text-[#991b1b]">QC Failure: Sampling frame reference missing. Manual review required.</span>
+              {qcIssues.length > 0 && (
+                <div className="border-t border-[#e7e0d3] bg-[#fef2f2] p-4">
+                  <div className="font-[family-name:var(--font-jetbrains-mono)] text-[10px] uppercase text-[#991b1b]">
+                    QC Issues
+                  </div>
+                  <ul className="mt-1 list-disc pl-4 font-[family-name:var(--font-source-sans-3)] text-sm text-[#991b1b]">
+                    {qcIssues.map((issue, index) => (
+                      <li key={index}>
+                        {issue.type || "issue"}: {issue.message || "—"}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button className="border border-[#fecaca] px-3 py-1.5 rounded-[2px] font-[family-name:var(--font-source-sans-3)] text-sm text-[#991b1b]">Retry</button>
-                  <button className="bg-[#801313] text-white px-3 py-1.5 rounded-[2px] font-[family-name:var(--font-source-sans-3)] text-sm">Manual Review</button>
-                </div>
-              </div>
+              )}
             </section>
-          </div>
-        </div>
-      </main>
+
+            <div className="flex justify-end">
+              <Link
+                href={`/analyze?id=${encodeURIComponent(selected.analysis_id)}`}
+                className="rounded-[2px] bg-[#801313] px-3 py-2 font-[family-name:var(--font-jetbrains-mono)] text-[10px] font-bold text-white"
+              >
+                LIHAT HASIL LENGKAP
+              </Link>
+            </div>
+          </>
+        )}
+      </div>
+    </main>
+  );
+}
+
+export default function PipelinePage() {
+  return (
+    <div
+      className="flex min-h-screen flex-col"
+      style={{
+        backgroundImage:
+          "linear-gradient(90deg, rgb(250, 247, 242) 0%, rgb(250, 247, 242) 100%), linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%)",
+      }}
+    >
+      <Navbar
+        showSearch={true}
+        showProfile={true}
+        showRepository={true}
+        activePage="pipeline"
+      />
+      <AuthGate>
+        <PipelineContent />
+      </AuthGate>
     </div>
   );
 }

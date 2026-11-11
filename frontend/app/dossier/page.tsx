@@ -1,96 +1,175 @@
+"use client";
+
 import Link from "next/link";
-import Navbar from "../components/navbar";
+import { useMemo, useState } from "react";
+import Navbar from "@/components/navbar";
+import AuthGate, { LoadingScreen } from "@/components/auth-gate";
+import StatusBadge from "@/components/status-badge";
+import { useAnalyses } from "@/lib/hooks";
 
-export default function DossierPage() {
-  const items = [
-    { id: "DOS-2026-08-01", title: "Q3 Macroeconomic Census Report 2024", org: "Badan Pusat Statistik", status: "VERIFIED", date: "2026-08-01", pages: 48, records: 12 },
-    { id: "DOS-2026-07-24", title: "Public Service Satisfaction Survey 2025", org: "Litbang Kompas", status: "REVIEW", date: "2026-07-24", pages: 36, records: 8 },
-    { id: "DOS-2026-07-12", title: "Poverty & Welfare Indicators Q2 2025", org: "Badan Pusat Statistik", status: "VERIFIED", date: "2026-07-12", pages: 42, records: 15 },
-    { id: "DOS-2026-06-28", title: "Demographic Transition Survey 2024", org: "ICPSR Data Archive", status: "FLAGGED", date: "2026-06-28", pages: 64, records: 19 },
-  ];
+function DossierContent() {
+  const { analyses, loading, error, refresh } = useAnalyses();
+  const [query, setQuery] = useState("");
 
-  const statusStyle = (s: string) => {
-    if (s === "VERIFIED") return "bg-[rgba(0,108,78,0.08)] border-[#006c4e]/30 text-[#006c4e]";
-    if (s === "REVIEW") return "bg-[rgba(161,98,7,0.08)] border-[#a16207]/30 text-[#a16207]";
-    return "bg-[rgba(128,19,19,0.08)] border-[#801313]/30 text-[#801313]";
-  };
+  const filtered = useMemo(() => {
+    const value = query.trim().toLowerCase();
+    if (!value) return analyses;
+    return analyses.filter((item) =>
+      `${item.title} ${item.filename || ""} ${item.analysis_id}`
+        .toLowerCase()
+        .includes(value)
+    );
+  }, [analyses, query]);
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ backgroundImage: "linear-gradient(90deg, rgb(250, 247, 242) 0%, rgb(250, 247, 242) 100%), linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%)" }}>
-      <Navbar showSearch={true} showProfile={true} showRepository={true} activePage="dossier" />
-      <main className="flex-1 bg-[#faf7f2] px-6 py-8">
-        <div className="mx-auto max-w-[1152px] px-6 py-8 flex flex-col gap-6">
-          <section className="flex flex-col gap-2">
-            <div className="font-[family-name:var(--font-jetbrains-mono)] text-[11px] tracking-[0.55px] uppercase text-[#801313] leading-[16.5px]">DOSSIER ARCHIVE</div>
-            <h1 className="font-[family-name:var(--font-newsreader)] text-[#1c1917] text-4xl tracking-[-1px] leading-[40px]">Active Dossiers</h1>
-            <p className="font-[family-name:var(--font-source-sans-3)] text-base text-[#635d5c] leading-[26px]">Forensic audit trail of uploaded reports with verification status and evidence traceability.</p>
-          </section>
-
-          <section className="bg-white border border-[#e7e0d3] rounded-[4px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] overflow-hidden">
-            <div className="px-6 py-3 border-b border-[#e7e0d3] flex items-center justify-between">
-              <div className="flex items-center gap-2 text-[#635d5c]">
-                <svg width="14" height="16" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M10 1.5H4A1.5 1.5 0 002.5 3v12A1.5 1.5 0 004 16.5h8a1.5 1.5 0 001.5-1.5V6L10 1.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M10 1.5v4.5h4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <span className="font-[family-name:var(--font-source-sans-3)] text-sm">4 dossiers</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button className="border border-[#d8c2be] rounded-[2px] px-3 py-1.5 flex items-center gap-1.5 hover:bg-[#faf7f2]">
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M14.667 2H1.333l5.334 6.307V12.667L9.333 14V8.307L14.667 2z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  <span className="font-[family-name:var(--font-source-sans-3)] text-sm text-[#1c1917]">Filter</span>
-                </button>
-                <button className="border border-[#d8c2be] rounded-[2px] px-3 py-1.5 flex items-center gap-1.5 hover:bg-[#faf7f2]">
-                  <svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M7 1.75v7M3.5 5.25l3.5 3.5 3.5-3.5M2.333 10.5v.583a1.167 1.167 0 001.167 1.167h7a1.167 1.167 0 001.167-1.167V10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  <span className="font-[family-name:var(--font-source-sans-3)] text-sm text-[#1c1917]">Export</span>
-                </button>
-              </div>
+    <main className="flex-1 bg-[#faf7f2] px-6 py-8">
+      <div className="mx-auto flex max-w-[1152px] flex-col gap-6 px-2 sm:px-6">
+        <section className="flex flex-col gap-2">
+          <div className="font-[family-name:var(--font-jetbrains-mono)] text-[11px] uppercase leading-[16.5px] tracking-[0.55px] text-[#801313]">
+            DOSSIER ARCHIVE
+          </div>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h1 className="font-[family-name:var(--font-newsreader)] text-4xl leading-[40px] tracking-[-1px] text-[#1c1917]">
+                Active Dossiers
+              </h1>
+              <p className="mt-1 font-[family-name:var(--font-source-sans-3)] text-base leading-[26px] text-[#635d5c]">
+                Arsip laporan yang sudah diunggah beserta status pemrosesan dan
+                jumlah klaim yang dievaluasi.
+              </p>
             </div>
+            <Link
+              href="/analyze"
+              className="rounded-[2px] bg-[#801313] px-3 py-2 font-[family-name:var(--font-jetbrains-mono)] text-[10px] font-bold text-white hover:bg-[#5e0f0f]"
+            >
+              UNGGAH DOSSIER BARU
+            </Link>
+          </div>
+        </section>
+
+        <section className="overflow-hidden rounded-[4px] border border-[#e7e0d3] bg-white shadow-[0px_1px_1px_rgba(0,0,0,0.05)]">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e7e0d3] px-6 py-3">
+            <span className="font-[family-name:var(--font-source-sans-3)] text-sm text-[#635d5c]">
+              {filtered.length} dossier
+            </span>
+            <div className="flex items-center gap-2">
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Cari judul, file, atau ID..."
+                className="w-[240px] rounded-[2px] border border-[#d8c2be] px-3 py-1.5 font-[family-name:var(--font-source-sans-3)] text-sm text-[#1c1917] focus:border-[#801313] focus:outline-none"
+              />
+              <button
+                onClick={() => void refresh()}
+                className="rounded-[2px] border border-[#d8c2be] px-3 py-1.5 font-[family-name:var(--font-source-sans-3)] text-sm text-[#1c1917] hover:bg-[#faf7f2]"
+              >
+                Muat ulang
+              </button>
+            </div>
+          </div>
+
+          {error && (
+            <div className="border-b border-[#fecaca] bg-[#fdf2f2] px-6 py-3 font-[family-name:var(--font-source-sans-3)] text-sm text-[#991b1b]">
+              {error}
+            </div>
+          )}
+
+          {loading ? (
+            <LoadingScreen message="Memuat dossier..." />
+          ) : filtered.length === 0 ? (
+            <div className="px-6 py-12 text-center">
+              <p className="font-[family-name:var(--font-source-sans-3)] text-sm text-[#635d5c]">
+                {analyses.length === 0
+                  ? "Belum ada dossier. Unggah laporan PDF untuk membuat dossier pertama."
+                  : "Tidak ada dossier yang cocok dengan pencarian."}
+              </p>
+            </div>
+          ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-[#e7e0d3]">
-                    <th className="text-left px-6 py-2.5 font-[family-name:var(--font-jetbrains-mono)] text-[11px] tracking-[0.55px] uppercase text-[#635d5c] leading-[16.5px]">DOSSIER ID</th>
-                    <th className="text-left px-6 py-2.5 font-[family-name:var(--font-jetbrains-mono)] text-[11px] tracking-[0.55px] uppercase text-[#635d5c] leading-[16.5px]">REPORT</th>
-                    <th className="text-left px-6 py-2.5 font-[family-name:var(--font-jetbrains-mono)] text-[11px] tracking-[0.55px] uppercase text-[#635d5c] leading-[16.5px]">ORGANIZATION</th>
-                    <th className="text-left px-6 py-2.5 font-[family-name:var(--font-jetbrains-mono)] text-[11px] tracking-[0.55px] uppercase text-[#635d5c] leading-[16.5px]">STATUS</th>
-                    <th className="text-left px-6 py-2.5 font-[family-name:var(--font-jetbrains-mono)] text-[11px] tracking-[0.55px] uppercase text-[#635d5c] leading-[16.5px]">DATE</th>
-                    <th className="text-left px-6 py-2.5 font-[family-name:var(--font-jetbrains-mono)] text-[11px] tracking-[0.55px] uppercase text-[#635d5c] leading-[16.5px]">PAGES / RECORDS</th>
-                    <th className="text-right px-6 py-2.5 font-[family-name:var(--font-jetbrains-mono)] text-[11px] tracking-[0.55px] uppercase text-[#635d5c] leading-[16.5px]">ACTIONS</th>
+                    {[
+                      "DOSSIER ID",
+                      "REPORT",
+                      "FILE",
+                      "STATUS",
+                      "DATE",
+                      "CLAIMS / VALID",
+                      "ACTIONS",
+                    ].map((head) => (
+                      <th
+                        key={head}
+                        className="px-6 py-2.5 text-left font-[family-name:var(--font-jetbrains-mono)] text-[11px] uppercase leading-[16.5px] tracking-[0.55px] text-[#635d5c]"
+                      >
+                        {head}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {items.map((item) => (
-                    <tr key={item.id} className="border-b border-[#f3efe6] hover:bg-[#faf7f2]/50">
-                      <td className="px-6 py-4 font-[family-name:var(--font-jetbrains-mono)] text-sm text-[#801313] leading-5">{item.id}</td>
-                      <td className="px-6 py-4 font-[family-name:var(--font-source-sans-3)] text-sm text-[#1c1917] leading-5">{item.title}</td>
-                      <td className="px-6 py-4 font-[family-name:var(--font-source-sans-3)] text-sm text-[#635d5c] leading-5">{item.org}</td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex px-2 py-[2px] rounded-xl border text-[11px] font-[family-name:var(--font-jetbrains-mono)] tracking-[0.5px] uppercase leading-[16.5px] ${statusStyle(item.status)}`}>{item.status}</span>
+                  {filtered.map((item) => (
+                    <tr
+                      key={item.analysis_id}
+                      className="border-b border-[#f3efe6] hover:bg-[#faf7f2]/50"
+                    >
+                      <td className="px-6 py-4 font-[family-name:var(--font-jetbrains-mono)] text-xs text-[#801313]">
+                        {item.analysis_id.slice(0, 13)}…
                       </td>
-                      <td className="px-6 py-4 font-[family-name:var(--font-jetbrains-mono)] text-sm text-[#635d5c] leading-5">{item.date}</td>
-                      <td className="px-6 py-4 font-[family-name:var(--font-jetbrains-mono)] text-sm text-[#635d5c] leading-5">{item.pages} / {item.records}</td>
+                      <td className="max-w-[260px] px-6 py-4 font-[family-name:var(--font-source-sans-3)] text-sm text-[#1c1917]">
+                        <span className="line-clamp-2">{item.title}</span>
+                      </td>
+                      <td className="max-w-[180px] truncate px-6 py-4 font-[family-name:var(--font-source-sans-3)] text-xs text-[#635d5c]">
+                        {item.filename || "—"}
+                      </td>
+                      <td className="px-6 py-4">
+                        <StatusBadge status={item.status} />
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 font-[family-name:var(--font-jetbrains-mono)] text-xs text-[#635d5c]">
+                        {new Date(item.created_at).toLocaleDateString("id-ID")}
+                      </td>
+                      <td className="px-6 py-4 font-[family-name:var(--font-jetbrains-mono)] text-xs text-[#635d5c]">
+                        {item.summary.total_claims} /{" "}
+                        <span className="text-[#006c4e]">{item.summary.valid}</span>
+                      </td>
                       <td className="px-6 py-4 text-right">
-                        <button className="inline-flex items-center gap-1.5 text-[#635d5c] hover:text-[#1c1917]">
-                          <svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1.167 7s2.333-4.083 5.833-4.083S12.833 7 12.833 7s-2.333 4.083-5.833 4.083S1.167 7 1.167 7z" stroke="currentColor" strokeWidth="1.2" />
-                            <circle cx="7" cy="7" r="1.75" stroke="currentColor" strokeWidth="1.2" />
-                          </svg>
-                          <span className="font-[family-name:var(--font-source-sans-3)] text-sm">View</span>
-                        </button>
+                        <Link
+                          href={`/analyze?id=${encodeURIComponent(item.analysis_id)}`}
+                          className="font-[family-name:var(--font-source-sans-3)] text-sm text-[#801313] underline underline-offset-2"
+                        >
+                          View
+                        </Link>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          </section>
-        </div>
-      </main>
+          )}
+        </section>
+      </div>
+    </main>
+  );
+}
+
+export default function DossierPage() {
+  return (
+    <div
+      className="flex min-h-screen flex-col"
+      style={{
+        backgroundImage:
+          "linear-gradient(90deg, rgb(250, 247, 242) 0%, rgb(250, 247, 242) 100%), linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%)",
+      }}
+    >
+      <Navbar
+        showSearch={true}
+        showProfile={true}
+        showRepository={true}
+        activePage="dossier"
+      />
+      <AuthGate>
+        <DossierContent />
+      </AuthGate>
     </div>
   );
 }

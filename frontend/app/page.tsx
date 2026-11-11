@@ -142,54 +142,32 @@ export default function Home() {
                 </svg>
                 <h2 className="font-[family-name:var(--font-newsreader)] font-semibold text-[#1c1917] text-sm leading-5">PDF Document Dropper</h2>
               </div>
-              <span className="font-[family-name:var(--font-jetbrains-mono)] text-[11px] text-[#635d5c] leading-[16.5px]">Vector PDF • Max 50 MB</span>
+              <span className="font-[family-name:var(--font-jetbrains-mono)] text-[11px] text-[#635d5c] leading-[16.5px]">PDF • Maks 20 MB</span>
             </div>
-            <div className="p-[17px] flex flex-col gap-3.5">
+            <div className="p-[17px]">
               <div className="bg-[#f3efe6] border border-[#e7e0d3] border-dashed rounded-[4px] p-[21px] flex flex-col items-center gap-1.5 text-center">
                 <div className="bg-[rgba(255,218,214,0.3)] rounded-xl size-10 flex items-center justify-center mb-1">
                   <svg width="16.67" height="16.67" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M10 2.5v10M5 7.5l5-5 5 5M3.333 12.5v2.917A1.667 1.667 0 005 17.083h10a1.667 1.667 0 001.667-1.666V12.5" stroke="#801313" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
-                <h3 className="font-[family-name:var(--font-newsreader)] font-semibold text-[#1c1917] text-sm leading-5">Drag & drop your survey report PDF here</h3>
-                <p className="font-[family-name:var(--font-source-sans-3)] text-xs text-[#635d5c] leading-4">Supports national statistics reports, census bulletins, and socio-economic survey data</p>
-                <button className="mt-2 bg-white border border-[#801313] rounded-[4px] px-4 py-[7px] flex items-center gap-1.5 shadow-[0px_1px_1px_rgba(0,0,0,0.05)]">
+                <h3 className="font-[family-name:var(--font-newsreader)] font-semibold text-[#1c1917] text-sm leading-5">Mulai analisis laporan survei</h3>
+                <p className="max-w-[440px] font-[family-name:var(--font-source-sans-3)] text-xs text-[#635d5c] leading-4">
+                  Halaman analisis sẽ mengekstrak klaim, mencocokkan evidence, dan menampilkan verdict beserta kutipan halaman sumbernya.
+                </p>
+                <Link
+                  href="/analyze"
+                  className="mt-2 bg-white border border-[#801313] rounded-[4px] px-4 py-[7px] flex items-center gap-1.5 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] hover:bg-[#faf7f2]"
+                >
                   <svg width="12.54" height="9.33" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M4.667 9.333h6.666M8 2v7.333M2 4.667h.007M14 4.667h.007" stroke="#801313" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  <span className="font-[family-name:var(--font-jetbrains-mono)] text-xs font-semibold text-[#801313] leading-4">Browse Files</span>
-                </button>
+                  <span className="font-[family-name:var(--font-jetbrains-mono)] text-xs font-semibold text-[#801313] leading-4">Buka Halaman Analisis</span>
+                </Link>
                 <div className="mt-2 flex items-center gap-2.5 font-[family-name:var(--font-jetbrains-mono)] text-[11px] text-[#635d5c] leading-[16.5px]">
                   <span>Format: <span className="font-semibold text-[#1c1917]">PDF</span></span>
                   <span>•</span>
-                  <span>File Limit: <span className="font-semibold text-[#1c1917]">Up to 50 MB</span></span>
-                </div>
-              </div>
-
-              <div className="bg-[#f3efe6] border border-[#e7e0d3] rounded-[4px] p-[13px] flex flex-col gap-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="font-[family-name:var(--font-jetbrains-mono)] text-[11px] font-semibold tracking-[0.55px] uppercase text-[#635d5c] leading-[16.5px]">STAGED FILE READY FOR VERIFICATION</span>
-                </div>
-                <div className="bg-white border border-[#e7e0d3] rounded-[4px] p-[13px] flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-[#fff8f5] border border-[#801313] rounded-[2px] w-8 h-10 flex flex-col items-center justify-center">
-                      <svg width="10.67" height="13.33" viewBox="0 0 12 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M7.333 1.333H3A1.333 1.333 0 001.667 2.667v10.666A1.333 1.333 0 003 14.667h6a1.333 1.333 0 001.333-1.334V5.333L7.333 1.333z" stroke="#801313" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-                        <path d="M7.333 1.333v4h4" stroke="#801313" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                      <span className="font-[family-name:var(--font-jetbrains-mono)] text-[8px] font-bold text-[#801313] leading-[8px]">PDF</span>
-                    </div>
-                    <div>
-                      <div className="font-[family-name:var(--font-source-sans-3)] font-semibold text-[#1c1917] text-xs leading-4">Q3_Macroeconomic_Census_Report_2024.pdf</div>
-                      <div className="flex items-center gap-1.5 font-[family-name:var(--font-jetbrains-mono)] text-[11px] text-[#635d5c] leading-[16.5px] mt-0.5">
-                        <span>14.2 MB</span>
-                        <span>•</span>
-                        <span>48 Pages</span>
-                        <span>•</span>
-                        <span>Badan Pusat Statistik</span>
-                      </div>
-                    </div>
-                  </div>
+                  <span>Batas: <span className="font-semibold text-[#1c1917]">20 MB</span></span>
                 </div>
               </div>
             </div>
