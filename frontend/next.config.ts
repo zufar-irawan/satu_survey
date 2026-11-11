@@ -1,3 +1,4 @@
+import path from "path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -15,6 +16,14 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  // Add path aliases for @/ imports
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.resolve.alias['@'] = path.join(__dirname, 'app');
+    }
+    return config;
+  },
+  // Alternative: use the experimental featuresRouteImageSizing
 };
 
 export default nextConfig;

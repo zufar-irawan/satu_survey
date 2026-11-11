@@ -1,55 +1,10 @@
 import Link from "next/link";
-
-function IconSearch() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="7.333" cy="7.333" r="4.667" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M10.667 10.667L14 14" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconDownload() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M9 1.5v10.5M5.25 8.25L9 12l3.75-3.75M3 13.5v.75a1.5 1.5 0 001.5 1.5h9a1.5 1.5 0 001.5-1.5v-.75" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function IconShield() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M9 16.5s6-3 6-7.5V3.75L9 1.5 3 3.75v5.25c0 4.5 6 7.5 6 7.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
+import Navbar from "../components/navbar";
 
 export default function ExportPage() {
   return (
     <div className="flex flex-col min-h-screen" style={{ backgroundImage: "linear-gradient(90deg, rgb(250, 247, 242) 0%, rgb(250, 247, 242) 100%), linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%)" }}>
-      <header className="bg-[#fff8f5] border-b border-[#e0d8d5]">
-        <div className="mx-auto max-w-[1280px] px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-8">
-            <div className="flex flex-col">
-              <div className="font-[family-name:var(--font-newsreader)] font-bold text-[#1f1b1a] text-xl tracking-[-0.5px] leading-7">SatuSurvey</div>
-              <div className="font-[family-name:var(--font-jetbrains-mono)] font-bold text-[#801313] text-[9px] tracking-[0.9px] uppercase leading-[9px]">AI EVIDENCE & FACT VERIFICATION</div>
-            </div>
-            <nav className="hidden md:flex items-center gap-6 flex-nowrap">
-              <Link href="https://github.com/zufar-irawan/satu_survey" className="font-[family-name:var(--font-jetbrains-mono)] text-xs text-[#534341] hover:text-[#1f1b1a] leading-4">Repository</Link>
-              <Link href="/analysis" className="font-[family-name:var(--font-jetbrains-mono)] text-xs text-[#534341] hover:text-[#1f1b1a] leading-4">Analysis</Link>
-              <Link href="/dossier" className="font-[family-name:var(--font-jetbrains-mono)] text-xs text-[#534341] hover:text-[#1f1b1a] leading-4">Active Dossier</Link>
-              <Link href="/repository" className="font-[family-name:var(--font-jetbrains-mono)] text-xs text-[#534341] hover:text-[#1f1b1a] leading-4">Analyzed Reports</Link>
-              <Link href="/ingestion" className="font-[family-name:var(--font-jetbrains-mono)] text-xs text-[#534341] hover:text-[#1f1b1a] leading-4">Ingest & Report</Link>
-              <Link href="/profile" className="font-[family-name:var(--font-jetbrains-mono)] text-xs text-[#534341] hover:text-[#1f1b1a] leading-4">Profile / Account Settings</Link>
-            </nav>
-          </div>
-          <button className="bg-white/50 border border-[#d8c2be] rounded-xl size-8 flex items-center justify-center text-[#534341]">
-            <IconSearch />
-          </button>
-        </div>
-      </header>
-
+      <Navbar showSearch={true} showProfile={true} showRepository={true} activePage="export" />
       <main className="flex-1">
         <div className="mx-auto max-w-[1000px] px-6 py-8 flex flex-col gap-6">
           <section className="flex flex-col gap-2">
@@ -102,7 +57,9 @@ export default function ExportPage() {
             <div className="flex flex-col gap-4">
               <section className="bg-white border border-[#e7e0d3] rounded-[4px] shadow-[0px_1px_1px_rgba(0,0,0,0.05)] overflow-hidden">
                 <div className="px-5 py-4 border-b border-[#e7e0d3] flex items-center gap-2">
-                  <IconShield />
+                  <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 16.5s6-3 6-7.5V3.75L9 1.5 3 3.75v5.25c0 4.5 6 7.5 6 7.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                   <h3 className="font-[family-name:var(--font-newsreader)] text-[#1c1917] text-lg leading-6">Artifact Manifest</h3>
                 </div>
                 <div className="p-5 flex flex-col gap-3">
@@ -126,9 +83,13 @@ export default function ExportPage() {
                   </div>
                 </div>
               </section>
+            </section>
 
+            <div className="flex flex-col gap-4">
               <button className="bg-[#801313] text-white px-4 py-3 rounded-[2px] flex items-center justify-center gap-2 shadow-[0px_1px_1px_rgba(0,0,0,0.05)]">
-                <IconDownload />
+                <svg width="16" height="16" viewBox="0 0 16 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7.333 2.5H2.667A1.333 1.333 0 001.333 3.833v9.334A1.333 1.333 0 002.667 14.5h9.333a1.333 1.333 0 001.334-1.333V8.5M12.387 1.447a1.414 1.414 0 012 2l-7.333 7.334L4 11.167l.387-3.054 7.333-7.333z" stroke="#635d5c" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
                 <span className="font-[family-name:var(--font-jetbrains-mono)] text-xs font-bold">GENERATE & DOWNLOAD PACKAGE</span>
               </button>
               <button className="border border-[#d8c2be] bg-white px-4 py-3 rounded-[2px] flex items-center justify-center gap-2">
