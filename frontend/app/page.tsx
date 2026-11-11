@@ -56,9 +56,20 @@ export default function Home() {
                     </p>
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    {[ "Badan Pusat Statistik (BPS)", "ICPSR Data Archive", "Litbang Kompas", "World Values Survey (WVS)" ].map((item) => (
-                      <a key={item} href="#" className="bg-white border border-[#e7e0d3] rounded-[2px] px-2 py-[5px] flex items-center justify-between hover:bg-[#faf7f2]">
-                        <span className="font-[family-name:var(--font-source-sans-3)] font-semibold text-[11px] text-[#1c1917] leading-[16.5px]">{item}</span>
+                    {[
+                      { label: "Badan Pusat Statistik (BPS)", href: "https://www.bps.go.id/id/publication" },
+                      { label: "ICPSR Data Archive", href: "https://www.icpsr.umich.edu/" },
+                      { label: "Litbang Kompas", href: "https://www.kompas.id/litbang" },
+                      { label: "World Values Survey (WVS)", href: "https://www.worldvaluessurvey.org/" },
+                    ].map((item) => (
+                      <a
+                        key={item.label}
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-white border border-[#e7e0d3] rounded-[2px] px-2 py-[5px] flex items-center justify-between hover:bg-[#faf7f2]"
+                      >
+                        <span className="font-[family-name:var(--font-source-sans-3)] font-semibold text-[11px] text-[#1c1917] leading-[16.5px]">{item.label}</span>
                         <svg width="5.42" height="5.42" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M1.667 1.667h2.666v2.666M4.333 1.667L1.667 4.333" stroke="#1c1917" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
